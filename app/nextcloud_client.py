@@ -82,8 +82,10 @@ class NextcloudClient:
                 {"name", "path", "is_dir", "content_type", "size"}
         """
         url = self._webdav_url(path)
-        headers = {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"}
-        response = self.session.request("PROPFIND", url, headers=headers, data=PROPFIND_BODY)
+        # Conforme à la doc officielle Leviia : PROPFIND sans corps (data=None),
+        # Depth: 1 pour ne lister que le niveau immédiat.
+        headers = {"Depth": "1"}
+        response = self.session.request("PROPFIND", url, headers=headers, data=None)
         self._raise_with_body(response, url)
 
         root = ET.fromstring(response.content)
