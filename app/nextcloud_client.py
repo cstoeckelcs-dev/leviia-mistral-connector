@@ -13,8 +13,8 @@ class NextcloudClient:
         self.username = os.getenv("NEXTCLOUD_USERNAME")
         self.token = os.getenv("NEXTCLOUD_TOKEN")
         self.session = requests.Session()
+        self.session.auth = (self.username, self.token)
         self.session.headers.update({
-            "Authorization": f"Bearer {self.token}",
             "OCS-APIRequest": "true"
         })
 

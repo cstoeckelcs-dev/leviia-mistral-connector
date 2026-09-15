@@ -20,6 +20,7 @@ def index_files(folder_path="/"):
         folder_path (str): Chemin du dossier à indexer (ex: "/Documents").
     """
     client = NextcloudClient()
+    db = None
     
     try:
         # Lister les fichiers dans le dossier
@@ -64,7 +65,8 @@ def index_files(folder_path="/"):
         raise
     
     finally:
-        db.close()
+        if db is not None:
+            db.close()
 
 
 if __name__ == "__main__":
