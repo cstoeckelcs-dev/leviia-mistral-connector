@@ -62,6 +62,14 @@ class NextcloudClient:
             rel = "/" + rel
         return rel.rstrip("/") or "/"
 
+    @staticmethod
+    def _raise_with_body(response, url):
+        """Journalise le corps de la réponse avant de lever une HTTPError."""
+        if response.status_code >= 400:
+            body = response.text
+            logger.error("HTTP %s pour %s\nCorps de la réponse:\n%s", response.status_code, url, body)
+        response.raise_for_status()
+
     def list_files(self, path="/"):
         """
         Liste les fichiers et dossiers dans un dossier Nextcloud via WebDAV (PROPFIND).
@@ -76,7 +84,7 @@ class NextcloudClient:
         url = self._webdav_url(path)
         headers = {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"}
         response = self.session.request("PROPFIND", url, headers=headers, data=PROPFIND_BODY)
-        response.raise_for_status()
+        self._raise_with_body(response, url)
 
         root = ET.fromstring(response.content)
         requested_path = self._relative_path(
@@ -134,6 +142,6 @@ class NextcloudClient:
         """
         url = self._webdav_url(file_path)
         response = self.session.get(url)
-        response.raise_for_status()
+        self._raise_with_body(response, url)
         content_type = response.headers.get("Content-Type", "application/octet-stream")
         return response.content, content_type
