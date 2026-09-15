@@ -23,16 +23,15 @@ def index_files(folder_path="/"):
     db = None
     
     try:
-        # Lister les fichiers dans le dossier
-        files_response = client.list_files(folder_path)
-        files = files_response.get("ocs", {}).get("data", [])
+        # Lister les fichiers dans le dossier (via WebDAV PROPFIND)
+        entries = client.list_files(folder_path)
         
         db = SessionLocal()
         
-        for file in files:
-            if file.get("type") == "file":
-                file_path = file.get("path")
-                file_name = file.get("name")
+        for entry in entries:
+            if not entry.get("is_dir"):
+                file_path = entry.get("path")
+                file_name = entry.get("name")
                 
                 logger.info(f"Traitement du fichier : {file_name}")
                 
