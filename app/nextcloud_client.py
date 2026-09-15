@@ -40,7 +40,10 @@ class NextcloudClient:
         self.token = os.getenv("NEXTCLOUD_TOKEN")
         self.session = requests.Session()
         self.session.auth = (self.username, self.token)
-        self.webdav_root = f"{self.base_url}/remote.php/dav/files/{self.username}"
+        # Endpoint WebDAV documenté par Leviia pour le listing/le téléchargement
+        # (cf. wiki.leviia.com - Utiliser l'API Leviia Drive - Curl).
+        self.webdav_prefix = "/remote.php/webdav"
+        self.webdav_root = f"{self.base_url}{self.webdav_prefix}"
 
     def _webdav_url(self, path):
         """Construit l'URL WebDAV normalisée pour un chemin donné."""
@@ -50,14 +53,12 @@ class NextcloudClient:
             path = "/" + path
         return f"{self.webdav_root}{quote(path)}"
 
-    @staticmethod
-    def _relative_path(href, username):
+    def _relative_path(self, href):
         """Convertit un href WebDAV en chemin relatif (ex: /Tickets/fichier.pdf)."""
-        prefix = f"/remote.php/dav/files/{username}"
         rel = unquote(href)
-        idx = rel.find(prefix)
+        idx = rel.find(self.webdav_prefix)
         if idx != -1:
-            rel = rel[idx + len(prefix):]
+            rel = rel[idx + len(self.webdav_prefix):]
         if not rel.startswith("/"):
             rel = "/" + rel
         return rel.rstrip("/") or "/"
@@ -89,16 +90,14 @@ class NextcloudClient:
         self._raise_with_body(response, url)
 
         root = ET.fromstring(response.content)
-        requested_path = self._relative_path(
-            f"/remote.php/dav/files/{self.username}{quote(path or '/')}", self.username
-        )
+        requested_path = self._relative_path(f"{self.webdav_prefix}{quote(path or '/')}")
         results = []
 
         for resp in root.findall("d:response", NS):
             href_el = resp.find("d:href", NS)
             if href_el is None or not href_el.text:
                 continue
-            rel_path = self._relative_path(href_el.text, self.username)
+            rel_path = self._relative_path(href_el.text)
 
             # Sauter l'entrée correspondant au dossier interrogé lui-même.
             if rel_path.rstrip("/") == requested_path.rstrip("/"):
