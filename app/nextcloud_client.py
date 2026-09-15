@@ -6,7 +6,7 @@ load_dotenv()
 
 
 class NextcloudClient:
-    """Client for interacting with Leviia Drive (Nextcloud) API."""
+    """Client pour interagir avec l'API Nextcloud de Leviia Drive."""
 
     def __init__(self):
         self.base_url = os.getenv("NEXTCLOUD_URL")
@@ -19,22 +19,31 @@ class NextcloudClient:
         })
 
     def list_files(self, path="/"):
-        """List files in a Nextcloud folder."""
+        """
+        Liste les fichiers dans un dossier Nextcloud.
+        
+        Args:
+            path (str): Chemin du dossier (ex: "/Documents").
+            
+        Returns:
+            dict: Réponse JSON de l'API Nextcloud.
+        """
         url = f"{self.base_url}/ocs/v2.php/apps/files/api/v1/folders{path}"
         response = self.session.get(url)
         response.raise_for_status()
         return response.json()
 
     def download_file(self, file_path):
-        """Download a file from Nextcloud."""
+        """
+        Télécharge un fichier depuis Nextcloud.
+        
+        Args:
+            file_path (str): Chemin du fichier (ex: "/Documents/fichier.pdf").
+            
+        Returns:
+            tuple: (contenu du fichier, type de contenu).
+        """
         url = f"{self.base_url}/ocs/v2.php/apps/files/api/v1/files{file_path}"
         response = self.session.get(url)
         response.raise_for_status()
         return response.content, response.headers.get("Content-Type", "application/octet-stream")
-
-    def get_file_metadata(self, file_path):
-        """Get metadata for a specific file."""
-        url = f"{self.base_url}/ocs/v2.php/apps/files/api/v1/files{file_path}"
-        response = self.session.get(url)
-        response.raise_for_status()
-        return response.json()
