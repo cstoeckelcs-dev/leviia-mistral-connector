@@ -1,1 +1,1 @@
-# Package for the Leviia Mistral Connector
+# Package app for Leviia Mistral Connector
