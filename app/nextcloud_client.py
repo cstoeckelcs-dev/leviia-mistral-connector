@@ -40,9 +40,8 @@ class NextcloudClient:
         self.token = os.getenv("NEXTCLOUD_TOKEN")
         self.session = requests.Session()
         self.session.auth = (self.username, self.token)
-        # Endpoint WebDAV documenté par Leviia pour le listing/le téléchargement
-        # (cf. wiki.leviia.com - Utiliser l'API Leviia Drive - Curl).
-        self.webdav_prefix = "/remote.php/webdav"
+        # Endpoint WebDAV indiqué dans les paramètres de fichiers de Leviia Drive.
+        self.webdav_prefix = f"/remote.php/dav/files/{self.username}"
         self.webdav_root = f"{self.base_url}{self.webdav_prefix}"
 
     def _webdav_url(self, path):
